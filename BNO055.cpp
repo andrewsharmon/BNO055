@@ -1,14 +1,3 @@
-/**************************************************
-  This is a library for the BNO055
- **************************************************/
-
-#include <BNO055.h>
-
-/*************************************************************************
- CONSTRUCTOR
- *************************************************************************/
-
-
 BNO055::BNO055(void) {
   // use i2c
 }
@@ -20,31 +9,45 @@ bool BNO055::begin(BNO055Mode_t md, BNO055DataRateMode_t spd, byte addr)
   address = addr;
   dataSpeed = spd;
   message= 0x00;
-    
-    //give sensor time to boot
-    delay(400);
-    
+     
   /* Make sure we have the correct chip ID. This checks
      for correct address and that the IC is properly connected */
-  if (read8(BNO055_REGISTER_CHIP_ID) != BNO055_ID)
+    delay(100);
+  if (read8(BNO055_REGISTER_CHIP_ID) != BNO055_ID) //great it is already booted
   {
-    return false;
+      Wire.endTransmission();
+      delay(1000);//maybe it has not booted? wait...
+      if (read8(BNO055_REGISTER_CHIP_ID) != BNO055_ID)//try again
+      {
+    return false;  //Ocassionally getting this, need to make sure bus is available?
+      }
   }
+    write8(BNO055_REGISTER_OPR_MODE, CONFIGMODE); //Go to config mode if not there
+    delay(25); //mode switch delay
+write8(BNO055_REGISTER_SYS_TRIGGER, 0b00100000); //reset the sensor
+while (read8(BNO055_REGISTER_CHIP_ID) != BNO055_ID) //wait for boot
+{
+    delay(10);
+}
+    delay(50);
 
   // Ues a heck of a lot of defaults for now... dont even use the passed modes
 
 
   /* set a base mode (normal power mode, fastest/NDOF, manually packed for now) and start! */
+ 
+    
     write8(BNO055_REGISTER_PWR_MODE, NORMAL_POWER_MODE);
+    delay(1);
     write8(BNO055_REGISTER_OPR_MODE, NDOF|FASTEST_MODE);
     
     //give sensor time to change modes
-    delay(7);
+    delay(50);
     
-    if (read8(BNO055_REGISTER_SYS_STATUS) != 0x05 )
-    {
-    return false;
-    }
+    //if (read8(BNO055_REGISTER_SYS_STATUS) != 0x00 )
+   // {
+   // return false;
+ // }
 
 
   return true;
@@ -86,6 +89,13 @@ void BNO055::readEuler()
 
 }
 
+void BNO055::getInfo()
+{
+    SystemStatusCode = read8(BNO055_REGISTER_SYS_STATUS);
+   SelfTestStatus = read8(BNO055_REGISTER_ST_RESULT);
+   SystemError = read8(BNO055_REGISTER_SYS_ERR);
+}
+
 /***************************************************************************
  PRIVATE FUNCTIONS
  ***************************************************************************/
@@ -109,7 +119,7 @@ byte BNO055::read8(BNO055Registers_t reg)
     Wire.endTransmission();
     Wire.requestFrom(address, (byte)1);
     value = Wire.read();
-    Wire.endTransmission();
+    Wire.endTransmission(false);
 
   return value;
 }
