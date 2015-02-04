@@ -189,6 +189,11 @@ class BNO055
     
     
     void readEuler(void);
+    void getInfo(void);
+    byte SystemStatusCode;
+    byte SelfTestStatus;
+    byte SystemError;
+    
 
     BNO055EulerData EulerData;    // Last read will be available here
 
