@@ -181,6 +181,28 @@ class BNO055
       float y;
       float z;
     } BNO055EulerData;
+    
+    typedef struct BNO055LinAccData_s
+    {
+        float x;
+        float y;
+        float z;
+    } BNO055LinAccData;
+    
+    typedef struct BNO055QuaData_s
+    {
+        float w;
+        float x;
+        float y;
+        float z;
+    } BNO055QuaData;
+    
+    typedef struct BNO055AbsLinAccData_s
+    {
+        float x;
+        float y;
+        float z;
+    } BNO055AbsLinAccData;
 
 
     BNO055(void);
@@ -190,12 +212,19 @@ class BNO055
     
     void readEuler(void);
     void getInfo(void);
+    void readLinAcc(void);
+    void readQua(void);
+    void calcAbsLinAcc(void);
+    
     byte SystemStatusCode;
     byte SelfTestStatus;
     byte SystemError;
     
-
+    
     BNO055EulerData EulerData;    // Last read will be available here
+    BNO055LinAccData LinAccData;
+    BNO055QuaData QuaData;
+    BNO055AbsLinAccData AbsLinAccData;
 
   private:
     void write8(BNO055Registers_t reg, byte value);
